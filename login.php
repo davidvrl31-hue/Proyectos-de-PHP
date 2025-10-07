@@ -36,6 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
         if ($result->num_rows == 1) {
             $user = $result->fetch_assoc();
 
+            // ⚠️ En producción usa password_verify()
             if ($password === $user['password']) {
 
                 // 🔹 Cerrar sesiones previas abiertas del mismo usuario
@@ -47,25 +48,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 $stmt_cerrar->execute();
                 $stmt_cerrar->close();
 
-                // 🔹 Forzar nuevo ID de sesión de PHP
+                // 🔹 Forzar nuevo ID de sesión
                 session_regenerate_id(true);
 
-                // 🔹 Generar sesion_id único de 64 bits
-                $sesion_id_unico = bin2hex(random_bytes(8)); // 64 bits
+                // 🔹 Capturar el nuevo session_id
+                $sesion_id = session_id();
 
                 // Variables de sesión
-                $_SESSION['sesion_id'] = $sesion_id_unico;
+                $_SESSION['sesion_id'] = $sesion_id;
                 $_SESSION['user_id']   = $user['id'];
                 $_SESSION['username']  = $user['username'];
                 $_SESSION['loggedin']  = true;
 
-                // 🔹 Insertar nueva sesión en log_sistema
+                // 🔹 Registrar nueva sesión en log_sistema
                 $sql_log = "INSERT INTO log_sistema (sesion_id, usuario, fecha_inicio) VALUES (?, ?, NOW())";
                 $stmt_log = $conn->prepare($sql_log);
-                $stmt_log->bind_param("ss", $sesion_id_unico, $user['username']);
+                $stmt_log->bind_param("ss", $sesion_id, $user['username']);
                 $stmt_log->execute();
                 $stmt_log->close();
 
+                // Redirigir al sistema principal
                 header("Location: conexionBD_leer_registrar_eliminar_editar_css_sesion.php");
                 exit;
             } else {
@@ -74,6 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
         } else {
             $error = "Usuario no encontrado";
         }
+
         $stmt->close();
         $conn->close();
     }
