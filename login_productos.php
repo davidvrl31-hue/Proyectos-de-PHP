@@ -1,10 +1,12 @@
 
+
 <?php
 session_start();
 
 /**
  * Conexión a la base de datos
  */
+
 function conectarBD() {
     $host = "localhost";
     $dbuser = "root";
@@ -91,4 +93,5 @@ if (isset($_GET['logout'])) {
     
 </body>
 </html>
+
 ```

@@ -28,41 +28,17 @@ function conectarBD() {
 }
 
 /**
- * Registrar auditoría de inicio de sesión
- */
-if (isset($_SESSION['username']) && isset($_SESSION['user_id'])) {
-    $conn = conectarBD();
-    $sesion_id = session_id();
-    $usuario = $_SESSION['username'];
-
-    $sql = "SELECT id_log FROM log_sistema WHERE sesion_id=? AND fecha_cierre IS NULL";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $sesion_id);
-    $stmt->execute();
-    $stmt->store_result();
-
-    if ($stmt->num_rows == 0) {
-        $sql_insert = "INSERT INTO log_sistema (sesion_id, usuario, fecha_inicio) VALUES (?, ?, NOW())";
-        $stmt2 = $conn->prepare($sql_insert);
-        $stmt2->bind_param("ss", $sesion_id, $usuario);
-        $stmt2->execute();
-        $stmt2->close();
-    }
-    $stmt->close();
-    $conn->close();
-}
-
-/**
  * Cierre de sesión con auditoría
  */
 if (isset($_GET['logout'])) {
     $conn = conectarBD();
-    $sesion_id = session_id();
-    $sql_update = "UPDATE log_sistema SET fecha_cierre=NOW() WHERE sesion_id=? AND fecha_cierre IS NULL";
-    $stmt = $conn->prepare($sql_update);
-    $stmt->bind_param("s", $sesion_id);
-    $stmt->execute();
-    $stmt->close();
+    if (isset($_SESSION['sesion_id'])) {
+        $sql_update = "UPDATE log_sistema SET fecha_cierre=NOW() WHERE sesion_id=? AND fecha_cierre IS NULL";
+        $stmt = $conn->prepare($sql_update);
+        $stmt->bind_param("s", $_SESSION['sesion_id']);
+        $stmt->execute();
+        $stmt->close();
+    }
     $conn->close();
 
     session_unset();
@@ -108,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['editar_id'])) {
                 <?php
                 echo "User Id: " . $_SESSION['user_id'];
                 $nombreSession = session_name();
-                $idSession = session_id();
+                $idSession = $_SESSION['sesion_id']; // usamos el ID único generado en login.php
                 echo " |  Session Name: " . $nombreSession . "  |   Session Id: " . $idSession . "  |";
                 ?>
                Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?> | 
