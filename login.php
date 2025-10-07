@@ -36,10 +36,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
         if ($result->num_rows == 1) {
             $user = $result->fetch_assoc();
 
-            // ⚠️ En producción usa password_verify()
+            //  En producción usa password_verify()
             if ($password === $user['password']) {
 
-                // 🔹 Cerrar sesiones previas abiertas del mismo usuario
+                //  Cerrar sesiones previas abiertas del mismo usuario
                 $sql_cerrar = "UPDATE log_sistema 
                                SET fecha_cierre = NOW() 
                                WHERE usuario = ? AND fecha_cierre IS NULL";
@@ -48,10 +48,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 $stmt_cerrar->execute();
                 $stmt_cerrar->close();
 
-                // 🔹 Forzar nuevo ID de sesión
+                //  Forzar nuevo ID de sesión
                 session_regenerate_id(true);
 
-                // 🔹 Capturar el nuevo session_id
+                //  Capturar el nuevo session_id
                 $sesion_id = session_id();
 
                 // Variables de sesión
@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 $_SESSION['username']  = $user['username'];
                 $_SESSION['loggedin']  = true;
 
-                // 🔹 Registrar nueva sesión en log_sistema
+                //  Registrar nueva sesión en log_sistema
                 $sql_log = "INSERT INTO log_sistema (sesion_id, usuario, fecha_inicio) VALUES (?, ?, NOW())";
                 $stmt_log = $conn->prepare($sql_log);
                 $stmt_log->bind_param("ss", $sesion_id, $user['username']);
